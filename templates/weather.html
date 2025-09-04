@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Weather Prediction - Agrigrow{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h2 class="h4 mb-0"><i class="fas fa-cloud-sun me-2"></i>Weather Prediction</h2>
+            </div>
+            <div class="card-body">
+                <p class="card-text mb-4">Check the current weather and forecast for your location to plan your farming activities.</p>
+                
+                <form id="weatherForm">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="cityInput" placeholder="Enter city name" required>
+                        <button class="btn btn-success" type="submit">
+                            <i class="fas fa-search me-1"></i> Check Weather
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="weatherResults" class="mt-4" style="display: none;">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h3 class="h5 mb-3">Current Weather in <span id="cityName"></span></h3>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div id="weatherIcon" class="me-3">
+                                            <i class="fas fa-cloud-sun fa-3x text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="h2 mb-0"><span id="temperature"></span>°C</h4>
+                                            <p class="mb-0 text-capitalize" id="weatherDescription"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="weather-details mt-3 mt-md-0">
+                                        <p><i class="fas fa-tint me-2 text-primary"></i> Humidity: <span id="humidity"></span>%</p>
+                                        <p class="mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i> Date: <span id="currentDate"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 class="h5 mt-4 mb-3">Weather Forecast</h4>
+                    <div class="row" id="forecastContainer">
+                        <!-- Forecast cards will be added here -->
+                    </div>
+                    
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i> Weather data is important for planning irrigation, harvesting, and other farming activities.
+                    </div>
+                </div>
+                
+                <div class="alert alert-danger mt-4" id="weatherErrorMessage" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="card mt-4 shadow">
+            <div class="card-header bg-light">
+                <h3 class="h5 mb-0">Weather and Agriculture</h3>
+            </div>
+            <div class="card-body">
+                <p>Weather plays a crucial role in agriculture. Here's how different weather conditions affect farming:</p>
+                <ul>
+                    <li><strong>Temperature:</strong> Affects plant growth, germination, and flowering</li>
+                    <li><strong>Rainfall:</strong> Determines irrigation needs and soil moisture</li>
+                    <li><strong>Humidity:</strong> Influences disease pressure and water requirements</li>
+                    <li><strong>Wind:</strong> Can cause physical damage to crops and affect pollination</li>
+                </ul>
+                <p class="mb-0">Monitoring weather conditions helps farmers make informed decisions about planting, harvesting, and crop protection.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Get current date
+        const today = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = today.toLocaleDateString('en-US', options);
+        $('#currentDate').text(formattedDate);
+        
+        // Handle form submission
+        $('#weatherForm').submit(function(e) {
+            e.preventDefault();
+            
+            const city = $('#cityInput').val().trim();
+            if (!city) return;
+            
+            // Show loading state
+            $('#weatherResults').hide();
+            $('#weatherErrorMessage').hide();
+            $('button[type="submit"]').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
+            $('button[type="submit"]').prop('disabled', true);
+            
+            // Send AJAX request
+            $.ajax({
+                url: '/api/weather',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ city: city }),
+                success: function(data) {
+                    if (data.error) {
+                        $('#weatherErrorMessage').text(data.error).show();
+                        return;
+                    }
+                    
+                    // Update current weather
+                    $('#cityName').text(data.city);
+                    $('#temperature').text(data.temperature);
+                    $('#humidity').text(data.humidity);
+                    $('#weatherDescription').text(data.description);
+                    
+                    // Update weather icon based on description
+                    updateWeatherIcon(data.description);
+                    
+                    // Update forecast
+                    $('#forecastContainer').empty();
+                    if (data.forecast && data.forecast.length > 0) {
+                        data.forecast.forEach(function(day) {
+                            $('#forecastContainer').append(`
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">${day.day}</h5>
+                                            <div class="my-2">
+                                                ${getWeatherIconHTML(day.description)}
+                                            </div>
+                                            <p class="card-text">${day.temp}°C</p>
+                                            <p class="card-text text-capitalize">${day.description}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `);
+                        });
+                    } else {
+                        $('#forecastContainer').append(`
+                            <div class="col-12">
+                                <div class="alert alert-warning">
+                                    Forecast data is not available.
+                                </div>
+                            </div>
+                        `);
+                    }
+                    
+                    $('#weatherResults').show();
+                },
+                error: function(xhr) {
+                    let errorMsg = 'An error occurred while fetching weather data.';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg = xhr.responseJSON.error;
+                    }
+                    $('#weatherErrorMessage').text(errorMsg).show();
+                },
+                complete: function() {
+                    // Reset button state
+                    $('button[type="submit"]').html('<i class="fas fa-search me-1"></i> Check Weather');
+                    $('button[type="submit"]').prop('disabled', false);
+                }
+            });
+        });
+        
+        // Function to update weather icon based on description
+        function updateWeatherIcon(description) {
+            let iconHTML = '';
+            
+            description = description.toLowerCase();
+            if (description.includes('clear') || description.includes('sunny')) {
+                iconHTML = '<i class="fas fa-sun fa-3x text-warning"></i>';
+            } else if (description.includes('cloud')) {
+                if (description.includes('partly')) {
+                    iconHTML = '<i class="fas fa-cloud-sun fa-3x text-primary"></i>';
+                } else {
+                    iconHTML = '<i class="fas fa-cloud fa-3x text-secondary"></i>';
+                }
+            } else if (description.includes('rain') || description.includes('drizzle')) {
+                iconHTML = '<i class="fas fa-cloud-rain fa-3x text-info"></i>';
+            } else if (description.includes('thunder')) {
+                iconHTML = '<i class="fas fa-bolt fa-3x text-warning"></i>';
+            } else if (description.includes('snow')) {
+                iconHTML = '<i class="fas fa-snowflake fa-3x text-info"></i>';
+            } else if (description.includes('mist') || description.includes('fog')) {
+                iconHTML = '<i class="fas fa-smog fa-3x text-secondary"></i>';
+            } else {
+                iconHTML = '<i class="fas fa-cloud-sun fa-3x text-primary"></i>';
+            }
+            
+            $('#weatherIcon').html(iconHTML);
+        }
+        
+        // Function to get weather icon HTML
+        function getWeatherIconHTML(description) {
+            description = description.toLowerCase();
+            if (description.includes('clear') || description.includes('sunny')) {
+                return '<i class="fas fa-sun fa-2x text-warning"></i>';
+            } else if (description.includes('cloud')) {
+                if (description.includes('partly')) {
+                    return '<i class="fas fa-cloud-sun fa-2x text-primary"></i>';
+                } else {
+                    return '<i class="fas fa-cloud fa-2x text-secondary"></i>';
+                }
+            } else if (description.includes('rain') || description.includes('drizzle')) {
+                return '<i class="fas fa-cloud-rain fa-2x text-info"></i>';
+            } else if (description.includes('thunder')) {
+                return '<i class="fas fa-bolt fa-2x text-warning"></i>';
+            } else if (description.includes('snow')) {
+                return '<i class="fas fa-snowflake fa-2x text-info"></i>';
+            } else if (description.includes('mist') || description.includes('fog')) {
+                return '<i class="fas fa-smog fa-2x text-secondary"></i>';
+            } else {
+                return '<i class="fas fa-cloud-sun fa-2x text-primary"></i>';
+            }
+        }
+    });
+</script>
+{% endblock %}

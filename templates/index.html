@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row align-items-center mb-5">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold text-success">Welcome to Agrigrow</h1>
+        <p class="lead">Your all-in-one solution for smarter farming decisions</p>
+        <p class="mb-4">Agrigrow helps farmers make data-driven decisions with crop recommendations, weather forecasts, and disease identification.</p>
+        <div class="d-grid gap-2 d-md-flex">
+            <a href="/crop-recommendation" class="btn btn-success btn-lg px-4 me-md-2">Get Started</a>
+            <a href="#features" class="btn btn-outline-success btn-lg px-4">Learn More</a>
+        </div>
+    </div>
+    <div class="col-lg-6 mt-4 mt-lg-0">
+        <img src="{{ url_for('static', filename='images/farming.jpg') }}" class="img-fluid rounded shadow" alt="Farming image" onerror="this.src='https://via.placeholder.com/600x400?text=Agriculture+Image'">
+    </div>
+</div>
+
+<hr class="my-5">
+
+<section id="features" class="py-3">
+    <h2 class="text-center mb-5">Our Features</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3">
+                        <i class="fas fa-seedling fa-2x p-3"></i>
+                    </div>
+                    <h3 class="card-title h5">Crop Recommendation</h3>
+                    <p class="card-text">Get personalized crop recommendations based on soil parameters and climate conditions.</p>
+                    <a href="/crop-recommendation" class="btn btn-sm btn-outline-success">Try Now</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3">
+                        <i class="fas fa-cloud-sun fa-2x p-3"></i>
+                    </div>
+                    <h3 class="card-title h5">Weather Prediction</h3>
+                    <p class="card-text">Access current weather data and forecasts to plan your farming activities.</p>
+                    <a href="/weather" class="btn btn-sm btn-outline-success">Check Weather</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3">
+                        <i class="fas fa-microscope fa-2x p-3"></i>
+                    </div>
+                    <h3 class="card-title h5">Disease Identification</h3>
+                    <p class="card-text">Upload images of your crops to identify potential diseases and get treatment recommendations.</p>
+                    <a href="/disease-identification" class="btn btn-sm btn-outline-success">Identify Disease</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .feature-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 70px;
+        height: 70px;
+    }
+</style>
+{% endblock %}

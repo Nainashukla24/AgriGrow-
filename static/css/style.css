@@ -1,0 +1,99 @@
+/* Main Styles for AgriAssist */
+
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+/* Header Styles */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.nav-link {
+    font-weight: 500;
+}
+
+/* Card Styles */
+.card {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+/* Button Styles */
+.btn {
+    border-radius: 0.25rem;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Form Styles */
+.form-control {
+    border-radius: 0.25rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Feature Icons */
+.feature-icon {
+    border-radius: 50%;
+}
+
+/* Footer Styles */
+footer {
+    margin-top: auto;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2.5rem;
+    }
+}
+
+/* Animation for loading */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Custom styles for the weather page */
+.weather-details p {
+    margin-bottom: 0.5rem;
+}
+
+/* Custom styles for the disease identification page */
+#imagePreview {
+    animation: fadeIn 0.5s ease-in;
+}

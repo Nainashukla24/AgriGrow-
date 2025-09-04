@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Crop Recommendation - Agrigrow{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h2 class="h4 mb-0"><i class="fas fa-seedling me-2"></i>Crop Recommendation</h2>
+            </div>
+            <div class="card-body">
+                <p class="card-text mb-4">Enter your soil parameters and climate conditions to get personalized crop recommendations.</p>
+                
+                <form id="cropRecommendationForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="nitrogen" class="form-label">Nitrogen (N) in kg/ha:</label>
+                            <input type="number" class="form-control" id="nitrogen" name="nitrogen" min="0" max="300" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phosphorus" class="form-label">Phosphorus (P) in kg/ha:</label>
+                            <input type="number" class="form-control" id="phosphorus" name="phosphorus" min="0" max="300" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="potassium" class="form-label">Potassium (K) in kg/ha:</label>
+                            <input type="number" class="form-control" id="potassium" name="potassium" min="0" max="300" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="temperature" class="form-label">Temperature (°C):</label>
+                            <input type="number" class="form-control" id="temperature" name="temperature" min="0" max="50" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="humidity" class="form-label">Humidity (%):</label>
+                            <input type="number" class="form-control" id="humidity" name="humidity" min="0" max="100" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ph" class="form-label">pH value:</label>
+                            <input type="number" class="form-control" id="ph" name="ph" min="0" max="14" step="0.1" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label for="rainfall" class="form-label">Rainfall (mm):</label>
+                            <input type="number" class="form-control" id="rainfall" name="rainfall" min="0" max="500" required>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-success">Get Recommendations</button>
+                            <button type="button" class="btn btn-outline-secondary" id="fillSampleData">Fill with Sample Data</button>
+                        </div>
+                    </div>
+                </form>
+                
+                <div id="recommendationResults" class="mt-4" style="display: none;">
+                    <h3 class="h5 mb-3">Recommended Crops:</h3>
+                    <div class="list-group" id="recommendationsList">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+                
+                <div class="alert alert-danger mt-4" id="errorMessage" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="card mt-4 shadow">
+            <div class="card-header bg-light">
+                <h3 class="h5 mb-0">How It Works</h3>
+            </div>
+            <div class="card-body">
+                <p>Our crop recommendation system uses soil parameters and climate conditions to suggest the most suitable crops for your farm. The system analyzes:</p>
+                <ul>
+                    <li><strong>Soil nutrients (N-P-K):</strong> The levels of Nitrogen, Phosphorus, and Potassium in your soil</li>
+                    <li><strong>Climate factors:</strong> Temperature, humidity, and rainfall in your area</li>
+                    <li><strong>Soil pH:</strong> The acidity or alkalinity of your soil</li>
+                </ul>
+                <p class="mb-0">Based on these parameters, we recommend crops that are most likely to thrive in your specific conditions.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Fill form with sample data
+        $('#fillSampleData').click(function() {
+            $('#nitrogen').val(90);
+            $('#phosphorus').val(42);
+            $('#potassium').val(43);
+            $('#temperature').val(24);
+            $('#humidity').val(82);
+            $('#ph').val(6.5);
+            $('#rainfall').val(150);
+        });
+        
+        // Handle form submission
+        $('#cropRecommendationForm').submit(function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                nitrogen: $('#nitrogen').val(),
+                phosphorus: $('#phosphorus').val(),
+                potassium: $('#potassium').val(),
+                temperature: $('#temperature').val(),
+                humidity: $('#humidity').val(),
+                ph: $('#ph').val(),
+                rainfall: $('#rainfall').val()
+            };
+            
+            // Show loading state
+            $('#recommendationResults').hide();
+            $('#errorMessage').hide();
+            $('button[type="submit"]').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
+            $('button[type="submit"]').prop('disabled', true);
+            
+            // Send AJAX request
+            $.ajax({
+                url: '/api/recommend-crop',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(data) {
+                    // Display results
+                    $('#recommendationsList').empty();
+                    
+                    data.forEach(function(item, index) {
+                        const badge = index === 0 ? 
+                            '<span class="badge bg-success ms-2">Best Match</span>' : '';
+                        
+                        $('#recommendationsList').append(`
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-1 text-capitalize">${item.crop} ${badge}</h5>
+                                    <small>Suitability: ${item.score}%</small>
+                                </div>
+                                <p class="mb-1">${item.description}</p>
+                                <div class="mt-2 small">
+                                    <p class="mb-1"><strong>Growing Season:</strong> ${item.growing_season}</p>
+                                    <p class="mb-1"><strong>Preferred Soil:</strong> ${item.soil_type}</p>
+                                </div>
+                            </div>
+                        `);
+                    });
+                    
+                    $('#recommendationResults').show();
+                },
+                error: function(xhr) {
+                    let errorMsg = 'An error occurred while processing your request.';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg = xhr.responseJSON.error;
+                    }
+                    $('#errorMessage').text(errorMsg).show();
+                },
+                complete: function() {
+                    // Reset button state
+                    $('button[type="submit"]').html('Get Recommendations');
+                    $('button[type="submit"]').prop('disabled', false);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
